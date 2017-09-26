@@ -1,0 +1,16 @@
+ch01:mymore.c
+	关于标准输入输出的缓冲区问题。像getchar gets 等这种C 标准库中的输入输出，都是从标准输入缓冲区读入，输出到标准输出的缓冲区的。用能听懂的话讲，就是你从键盘的输入的东西，它都是放在标准输入缓冲区中的，当你按下enter键的时候，才开始往getchar gets中读。 输出的时候也是输出到缓冲区中去，当遇到\n或者强制刷新的时候，才往屏幕上显示的。
+	当使用getchar时，会因为缓冲区的问题，读入\n，其实这个enter键只是表明结束这次的输入，但是依然会保存到缓冲区中去，因此getchar依然会读取到。还有如果下次使用getchar时，缓冲区依然还有残留值，getchar会继续读入，而不需要等待我们输入，因为上次的enter已经让缓冲区有内容了，getchar只要是缓冲区有内容，就能继续读，而不是等待我们输入。
+	未避免缓冲区的残留对新的输入或者输出造成影响：在每个最后不带\n的printf后面加fflush(stdout);在每个不想受接收缓冲区旧内容影响的scanf前面加rewind(stdin);另外请检查scanf的返回值。
+	
+	清空输入缓冲区。rewind
+	立即刷新输出缓冲区/即立即将输出缓冲区输入到屏幕。 fflush
+
+	ref：http://bbs.csdn.net/topics/390471195
+	http://www.cnblogs.com/sky-heaven/p/5016401.html
+	http://blog.csdn.net/gaopu12345/article/details/30457329
+	https://zhidao.baidu.com/question/567502664.html
+
+关于 printf("\033[7m more? \033[m"); \033[xxx 表示设置颜色。
+ref： http://bbs.csdn.net/topics/380060335
+https://zhidao.baidu.com/question/198689143734913405.html
