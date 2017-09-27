@@ -8,40 +8,27 @@ int main(int argc,char*argv[])
 {
 	FILE * fp;
     
-    //test for getchar
-//    char c ;
-//    c= getchar();
-//    {
-//        printf("%d\n",c);
-//        switcxh (c) {
-//            case ' ':
-//                printf("space\n");
-//                break;
-//            case '\n':
-//                printf("enter \n");
-//                break;
-//            default:
-//                printf("%d\n",c);
-//                break;
-//        }
-//    }
+    //添加管道,重定向的处理。 如 ls -la | ./a.out。
+    //处理一个argc = 1时，即将标准输入作为输入源，而非某个文件。
     
-	if(argc < 2)
+    if(argc == 1)
     {
-        printf("few arguments\n");
-        return -1;
-
+        domore(stdin);
+    }
+    else
+    {
+        while(argc != 1)// 遍历每个参数/即文件名
+        {
+            if((fp = fopen(argv[--argc],"r")) == NULL)
+            {
+                return -1;
+            }
+            domore(fp);
+            fclose(fp);
+        }
+        
     }
     
-	while(argc != 1)
-	{
-		if((fp = fopen(argv[--argc],"r")) == NULL)
-		{
-			return -1;
-		}
-		domore(fp);
-		fclose(fp);
-	}
 	return 0;
 }
 
@@ -52,10 +39,10 @@ void domore(FILE* fp)
 	int commond = 1; //q=0, oneline=1 onepage=2
 	while(fgets(linedata,LINELEN,fp)) //read line from fp
 	{
-		puts(linedata);// print to stdout
+		//puts(linedata);// print to stdout. puts print would add \n, use fputs
+        fputs(linedata, stdout);
 		if(linecount == PAGELINE)
 		{
-			puts("\033[7m more? \033[m");//print the tip
 			commond = seemore();
 			switch (commond)
 			{
@@ -97,29 +84,32 @@ int seemore2()
 //key point: how to read /n space from stdin.
 int seemore()
 {
-	int commond;
-	char c, aband;
-    rewind(stdin);
-	c = getchar(); //当stdin输入键入enter后，保存到缓冲区（\n也会保存），然后从缓冲区读取到c。getchar 知道第一个字符。 这里有一个问题存在，当按space 后，再按 enter是结束这次输入，但是我们getchar是读第一个字符后停止，而stdin缓冲区依然还有enter键，下次再次调用seemore的时候，会继续从缓冲区读，因为缓冲区还有值，也就是说我们还重新键入值，getchar 是从原先读后的值开始读，也就是enter键的值。所以提前return。 解决方法，1.刷新/清空stdin缓冲区，让其getchar 一个后，刷新,即清空缓冲区。使得下次进来的时候，stdin缓冲区是新的。2.getchar使用掉最后的\n, 不过这个只能是处理键入1个键时的情况， 即 x + enter。3.getch 直接从键盘输入,但是这个不是c标准库。
-    switch (c)
-	{
-		case 'q':
-			commond = 0;
-            break;
-		case '\n':
-			commond = 2;
-            break;
-        case ' ':
-			commond = 1;
-            break;
-		default:
-			commond = 1;
-            break;
-	}
-    //getchar();
-    //fflush(stdin); 在vc下可以，在linux下不行。
-    //setbuf(stdin, NULL); //不起作用
-    //scanf("%*[^\n]%*c"); 会还有一个问题，如果这时只是一个enter键。这个在上面那个getchar吸收了，而这时scanf还要再等待输入，即如果要有enter 必须是enter enter。 后面的while那个一样的问题
-   // while((aband = getchar()) != '\n' && c != EOF);
-	return commond;
+	char c;
+    //puts("\033[7m more? \033[m");//print the tip
+    fputs("\033[7m more? \033[m", stdout);
+    //just q \n space in use
+    //would be a problem when redirect 重定向或管道.
+    //it could not accept by keybord as stdin. because of redirect, stdin now is the stdout of the last command
+    //so we can ues /dev/tty as input.
+    //rewind(stdin); //avoid the result of the last input.
+    //c = getchar();
+    FILE *fpInput;
+    fpInput = fopen("/dev/tty", "r");
+    rewind(fpInput); //虽然fegtc不处理\n，但是如果输入多个字符，依然会读取上一次enter之后的值。所以还是rewind
+    c = fgetc(fpInput); //fgetc 不处理\n.
+    while(c!=EOF)
+    {
+        switch (c)
+        {
+            case 'q':
+                return 0;
+            case '\n':
+                return 2;
+            case ' ':
+                return 1;
+        }
+        rewind(fpInput);
+        c = fgetc(fpInput); //use first input char
+    }
+    return 0;
 }

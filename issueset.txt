@@ -14,3 +14,22 @@ ch01:mymore.c
 关于 printf("\033[7m more? \033[m"); \033[xxx 表示设置颜色。
 ref： http://bbs.csdn.net/topics/380060335
 https://zhidao.baidu.com/question/198689143734913405.html
+
+关于puts gets getc putc getchar<=>getc(stdin) putchar  fputs fgets fgetc fputc: 
+以上都是为标准IO(C标准库)设计的。不带f是默认文件指针指向标准输出，输入的。 带f是指定文件指针。puts 为输出添加\n。gets读取换行符并将其丢弃。fputs，fgets 没有，该怎样就怎样。
+标准IO 是带缓冲的IO，就是说，标准I/O默认采用了缓冲机制，比如调用fopen函数，不仅打开一个文件，而且建立了一个缓冲区（读写模式下将建立两个缓冲区），还创建了一个包含文件和缓冲区相关数据的数据结构。比如读取标准输入时，实际上是将标准输入如键盘，放到一个缓冲区中去。 当遇到\n或者强制输入时，才会将缓冲区的内容读取到程序中。输出到标准输出时，是将输出内容放到输出缓冲区，当遇到\n或者强制刷新输出时，才会输出到标准输出,即屏幕上去。
+如果尝试读取达到文件结尾，标准IO的getc会返回特殊值EOF，而fgets碰到EOF会返回NULL。 单个字符的是EOF， 一整个字符串的gets是NULL。
+IO：标准IO（带缓冲）和文件IO（不带缓冲）。前者一般是C标准库API，如fread fgets；后者是系统API，如read，write。
+ref：
+http://blog.csdn.net/lemon_fantasy/article/details/3394651
+https://zhidao.baidu.com/question/581325672.html
+http://bbs.csdn.net/topics/20422642
+
+关于管道和重定向
+管道：将上个命令的标准输出作为后一个命令的标准输入。
+
+
+
+
+
+
