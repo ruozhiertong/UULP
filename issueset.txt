@@ -37,6 +37,7 @@ read函数返回时，返回值说明了buf中前多少个字节是刚读上来�
 gcc 添加库 gcc mymore.c -lcurses
 xcode 中添加库。Taraget->Build Settings->Other Linker Flags->加上 -lcurses
 xcode中出错 Error opening terminal: unknown。
+使用更改终端方法来进行即时输出。http://bbs.csdn.net/topics/390850485
 ref：
 https://zhidao.baidu.com/question/231739888.html
 https://baike.baidu.com/item/getch()/10996394
