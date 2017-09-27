@@ -25,6 +25,28 @@ http://blog.csdn.net/lemon_fantasy/article/details/3394651
 https://zhidao.baidu.com/question/581325672.html
 http://bbs.csdn.net/topics/20422642
 
+
+关于read 也是有缓冲区。
+ssize_t read(int fd, void *buf, size_t count);
+参数count是请求读取的字节数，读上来的数据保存在缓冲区buf中，同时文件的当前读写位置向后移。注意这个读写位置和使用C标准I/O库时的读写位置有可能不同，这个读写位置是记在内核中的，而使用C标准I/O库时的读写位置是用户空间I/O缓冲区中的位置。比如用fgetc读一个字节，fgetc有可能从内核中预读1024个字节到I/O缓冲区中，再返回第一个字节，这时该文件在内核中记录的读写位置是1024，而在FILE结构体中记录的读写位置是1。注意返回值类型是ssize_t，表示有符号的size_t，这样既可以返回正的字节数、0（表示到达文件末尾）也可以返回负值-1（表示出错）。
+read函数返回时，返回值说明了buf中前多少个字节是刚读上来的。有些情况下，实际读到的字节数（返回值）会小于请求读的字节数count，例如：读常规文件时，在读到count个字节之前已到达文件末尾。例如，距文件末尾还有30个字节而请求读100个字节，则read返回30，下次read将返回0。
+
+
+关于使用键盘一输入就立即接收，而不是按enter键之后再处理。
+使用getch 不是C标准库。linux 中使用curses.h
+gcc 添加库 gcc mymore.c -lcurses
+xcode 中添加库。Taraget->Build Settings->Other Linker Flags->加上 -lcurses
+xcode中出错 Error opening terminal: unknown。
+ref：
+https://zhidao.baidu.com/question/231739888.html
+https://baike.baidu.com/item/getch()/10996394
+https://baike.baidu.com/item/getch/919674?fr=aladdin
+http://blog.chinaunix.net/uid-46552-id-2116326.html
+http://www.cnblogs.com/Quains/archive/2013/08/22/3276425.html
+https://stackoverflow.com/questions/4919373/xcode-and-curses-h-with-error-opening-terminal
+
+
+
 关于管道和重定向
 管道：将上个命令的标准输出作为后一个命令的标准输入。
 
