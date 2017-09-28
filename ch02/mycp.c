@@ -22,8 +22,8 @@ int main(int argc, char * argv[])
         printf("could not open %s\n",argv[1]);
         return -1;
     }
-    //if argv[2] not exist ,create it. note that the permmision and the 3rd arg for O_CREAT. if not set the permmision, the file would be ---- and not rw_rw_rw_ (0666).why the file not 0666? 因为实际还会受到进程权限的影响。
-    if ((dest_fd = open(argv[2], O_CREAT|O_RDWR ,0666)) == -1)
+    //if argv[2] not exist ,create it. note that the permmision and the 3rd arg for O_CREAT. if not set the permmision, the file would be ---- and not rw_rw_rw_ (0666).why the file not 0666? 因为实际还会受到进程权限的影响。其实是umask。如果是0633 ==> 633 & ~022 ==> 611 & 755 = 611
+    if ((dest_fd = open(argv[2], O_CREAT|O_RDWR ,0633)) == -1)
     {
         printf("could not open %s\n",argv[2]);
         return -1;
