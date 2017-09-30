@@ -46,11 +46,21 @@ http://blog.chinaunix.net/uid-46552-id-2116326.html
 http://www.cnblogs.com/Quains/archive/2013/08/22/3276425.html
 https://stackoverflow.com/questions/4919373/xcode-and-curses-h-with-error-opening-terminal
 
-从Unix中学习Unix
+从Unix中学习Unix。(解决思路，如查看相关命令或者函数或者头文件等)
 1.阅读联机帮助。（man）
 2.搜索联机帮助。（man -k）
 3.阅读.h文件。
 4.从参阅部分(SEE ALSO)得到启示。
+5.如果想查阅具体命令实现，可直接看源码。一般发行版的程序中只有头文件/usr/include 和库文件/usr/lib，不会有源文件。你要自己下载相关的源文件，或者用命令下载源文件(这个一般会放置在/usr/src 下)。
+
+eg:查看命令用法及源码实现。who。
+man who 查看who的功能用法。
+which who /whereis who/locate who /find who 。。 查找命令所在位置。一般在/usr/bin /bin下的。
+从man中知道who的头文件，库文件等，一般放在/usr/include /usr/lib中的。 如果不知道位置，通过文件名 来locate / find 也可以。
+如果有源文件，一般是在/usr/src中。可以通过文件名locate / find 来查找。 
+如果没有源文件，可以通过dpkg -S /usr/bin/who 找到相关源文件的包，然后下载下来，查看其源文件。
+一般以上步骤基本都能在本机中解决，且更权威，如果实在查询不到，或者实在看不懂，最后大杀器，google， 百度了。
+
 
 man 2 open :
 其中2表示是在man手册中第2节。man手册有多个小节。 第1节是shell命令。 第2节是库函数等。
@@ -60,6 +70,56 @@ open中第三个参数， 0666 生成的文件并不是rw_rw_rw？ 因为还会�
 ref：
 http://bbs.csdn.net/topics/390871259
 https://baike.baidu.com/item/umask/6048811?fr=aladdin
+
+
+
+TODO:
+who am i 显示一条信息，当前用户的当前终端。 如何获得当前终端的用户名？tty 命令如何实现， ttyname ttys 等。
+
+
+whoam 和 who am i 前者是显示当前操作用户信息，后者是显示当前登录用户的信息。
+当前登录用户可以用getlogin(), 当前操作用户可以用pwd = getpwuid(getuid()); who的实现是读取/var/run/utmp，当前登录用户记录在那个文件中了。
+whoami的实现，通过getpwuid。(查看源码得来的，因此whoami显示的是uid的)
+所以综上，who显示的是登录时用户的信息，不会随着用户权限的变换发生变化。 whoami显示的当前操作用户的uid。不同的用户的切换会显示不同的uid信息。
+
+关于 uid 和 euid。 通常情况下两者是一样的。每个程序都有自己的uid 和 euid。 对于who，whoami 在test用户时，其uid和euid都是test的id， 在root时，其uid和euid都是root的id。 而who / who am i显示的是登录用户，不是uid和euid，是登录系统的用户名，所以who不管权限怎么切换，显示的都登录用户，不会随着权限的切换而改变。(因为who是在/var/run/utmp 文件中的。这个文件中的记录是记录登录系统的用户，其实这时候不用考虑什么uid和euid。)
+而whoami 显示的是uid，会随着权限的切换，test时 显示的是test 的uid ，root时显示的是root的uid。
+有效用户ID和有效用户组ID：进程用来决定我们对资源的访问权限。一般情况下，有效用户ID等于实际用户ID，有效用户组ID等于实际用户组ID。当设置-用户-ID（SUID）位设置，则有效用户ID等于文件的所有者的uid，而不是实际用户ID；同样，如果设置了设置-用户组-ID（SGID）位 chmod u+s xxx，则有效用户组ID等于文件所有者的gid，而不是实际用户组ID。
+http://blog.csdn.net/ybxuwei/article/details/23563423 好！
+http://www.cnblogs.com/SlowDreamer/p/3416499.html
+http://keren.blog.51cto.com/720558/144908
+
+看看内置命令的源码实现？ who whoami ,在源码中可以查看到，coreutils包中。
+
+
+阅读linux 源码 ：/usr/src/linux. http://bbs.csdn.net/topics/330098112
+linux 开源的，所以好处就是什么都能找到相应的源码。不管是内核，还是c标准库，或者是内置命令源码，都能下载到系统中，或者单独下载下来。
+可能发行版本是不带源码的，要自己在系统中用命令去下载,一般会下载到/usr/src/linux 或者 单独下载源码。 参考 http://blog.csdn.net/jobbofhe/article/details/52137325
+
+关于linux中C标准库源码。纯净的内核是不包含C库的，只包含一些操作系统必需的功能和程序，甚至像bash这样的shell程序也不会有，纯净版本的内核应该是最精简的。C库一般是作为工具链下载进来的。我们安装工具链或者编译器的时候，通常就会下载C标准库。当然这个通常也只是下载库，而不是源码。
+要自己去下载源码到/usr/src/linux或者某个工具链目录下如xcode下 或者下载单独的源码如glibc。 xcode闭源的，看不到，只有头文件和库。 https://www.v2ex.com/t/283251
+C标准库不在linux内核中，内核源码中的内核库只是实现了一些必要的C标准库的子集(如一些字符串处理等)。内核源码/usr/src/linux。
+C标准库不在内核中，是内核外的一些额外库(和其他一般库一样，只是这个C标准库更重要，很多都会用到，基本是作为工具链使用)，一般我们安装编译器或者工具链的时候会安装进来，一般安装的是库，安装在工具链的目录下或者/usr/lib下等。 源码要另外下载。有多个c标准库，不过通常用的是GNU C 库，glibc，可以到gnu官网上下载。 还有uClib等。
+
+（以上说的c库/命令/程序不在内核中也不是绝对的，你自己可以对内核进行裁剪，添加，修改，使其内核带C标准库，这样也是可以的。那这样内核源码中自然也能有C标准的源码了。）
+
+一些常用的命令(ls等)以及必备程序(shell等)一般也会做到linux源码中(看发行版本是否将其加入到内核源码中，没有的话，只能自己额外下载这些程序和命令。)。如果有的话，下载linux源码后，也可以直接在源码中查看其相应命令的源码。如果没有的话，那么这些命令的源码就要自己额外下载了。
+linux常用命令和shell内置命令(built-in). 一般源码在coreutils包和binutils包。
+关于查找命令，locate which whereis. 命令一般在/usr/bin /bin 下。
+
+
+查看命令的源码：
+参考：http://www.cnblogs.com/sky-heaven/p/5475798.html
+http://blog.csdn.net/ljianhui/article/details/46449417
+http://bbs.chinaunix.net/thread-3628706-1-1.html 
+
+
+
+目前源码：命令的源码：coreutils，binutils。 bash 源码：bash。 C标准库源码：glibc。linux 源码：linux 4.13.4。
+
+说到源码，开源：https://www.kernel.org    http://www.gnu.org
+源码分析：http://blog.csdn.net/eastmoon502136/article/details/8711104 好
+glibc 源码剖析 http://blog.csdn.net/zhoudaxia/article/details/4620990
 
 关于管道和重定向
 管道：将上个命令的标准输出作为后一个命令的标准输入。
