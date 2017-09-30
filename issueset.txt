@@ -121,6 +121,12 @@ http://bbs.chinaunix.net/thread-3628706-1-1.html
 源码分析：http://blog.csdn.net/eastmoon502136/article/details/8711104 好
 glibc 源码剖析 http://blog.csdn.net/zhoudaxia/article/details/4620990
 
+
+在Xcode中为main函数设置输入参数：http://blog.csdn.net/wowfly98/article/details/51733039
+
+
+c中调用shell命令：http://www.cnblogs.com/niocai/archive/2011/07/20/2111896.html
+
 关于管道和重定向
 管道：将上个命令的标准输出作为后一个命令的标准输入。
 

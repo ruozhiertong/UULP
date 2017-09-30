@@ -28,7 +28,7 @@ int main(int argc, char* argv[])
     char *ptty;
     FILE * fp;
     
-    fp=popen("tty","r"); //利用管道将shell命令执行结果传回fp。
+    fp=popen("tty","r"); //建立管道IO，利用管道将shell命令执行结果传回fp。
     fgets(ttybuf,sizeof(ttybuf),fp);
     printf("%s\n",ttybuf); // "/dev/ttys003\n"
     fclose(fp);
