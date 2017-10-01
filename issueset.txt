@@ -127,6 +127,17 @@ glibc 源码剖析 http://blog.csdn.net/zhoudaxia/article/details/4620990
 
 c中调用shell命令：http://www.cnblogs.com/niocai/archive/2011/07/20/2111896.html
 
+
+mytail.c 参考了http://www.cnblogs.com/blueclue/archive/2011/11/08/linux_head_tail.html
+
+获取文件size：http://blog.csdn.net/yutianzuijin/article/details/27205121
+
+fread 到buffer中的内容不会在最后加\0。 如果要想buffer[len] 全部填满且做字符串输出%s, 最好只读len-1,最后一个手动填充\0。如果不填充，用%s读，可能停不下来，没有\0. 注意如果读len，并且buffer[len] = '\0', 越界了。 如果按照for循环方式读，可以不管\0,直接按照长读取就好。
+
+
+结构体大小比各成员大小和大， 因为编译器做了优化。
+参考：https://zhidao.baidu.com/question/204332638.html
+
 关于管道和重定向
 管道：将上个命令的标准输出作为后一个命令的标准输入。
 
