@@ -56,7 +56,7 @@ int main()
     
     printf("%d\n",sizeof(st.score));
     
-    printf("%d\n",sizeof(st)); //结构体大小比各成员大小和大， 因为编译器做了优化。
+    printf("%d\n",sizeof(st)); //结构体大小比各成员大小和大， 因为编译器做了优化。结构体对齐。
     
     for (int i = 0; i< 3; i ++)
     {

@@ -135,11 +135,86 @@ mytail.c 参考了http://www.cnblogs.com/blueclue/archive/2011/11/08/linux_head_
 fread 到buffer中的内容不会在最后加\0。 如果要想buffer[len] 全部填满且做字符串输出%s, 最好只读len-1,最后一个手动填充\0。如果不填充，用%s读，可能停不下来，没有\0. 注意如果读len，并且buffer[len] = '\0', 越界了。 如果按照for循环方式读，可以不管\0,直接按照长读取就好。
 
 
-结构体大小比各成员大小和大， 因为编译器做了优化。
+结构体大小比各成员大小和大， 因为编译器做了优化。结构体对齐,内存对齐。
 参考：https://zhidao.baidu.com/question/204332638.html
+
+直接往文件中写入结构体会如何？可以直接查看？还是只能结构化读取？
+测试结构化内容写入文件。
+0.可以直接结构体写入。
+1.能不能直接打开文件查看？无法直接查看，结构化写入的是二进制。可以用Sublime 转成十六进制查看。
+2.可以再次结构化读入。可以。
+
+
+stat 函数
+http://www.cnblogs.com/hnrainll/archive/2011/05/11/2043361.html
+st_size;      //文件字节数(文件大小)，实际文件大小。
+unsigned long st_blksize;   //块大小(文件系统的I/O 缓冲区大小)文件系统在建立时，设置的每个block大小。ext3 一般是4096,4K.
+unsigned long st_blocks;    //块数。系统分配给的block。如果是一个目录，那么本身是不占据block块数的，是由父目录承担块数。 这里的块数是磁盘扇区的块数。 即sector的块数。 一个磁盘扇区 512B。
+
+
+stat 命令
+stat -c '%b %B %s %n' 1.txt
+其中%b扇区块数。 %B 每块扇区大小，一般都是512B。 %s 实际文件大小。 块数*每块大小 >= 实际大小。
+
+stat 1.txt
+
+  File: ‘1.txt’
+  Size: 611       	Blocks: 8          IO Block: 4096   regular file
+Device: 801h/2049d	Inode: 277984      Links: 1
+Access: (0664/-rw-rw-r--)  Uid: ( 1000/     lxr)   Gid: ( 1000/     lxr)
+Access: 2017-10-10 12:04:20.530843552 +0800
+Modify: 2015-05-24 16:27:33.818566937 +0800
+Change: 2015-05-24 16:27:33.818566937 +0800
+ Birth: -
+
+size:实际大小。 Blocks 指磁盘扇区的块数目，一般每个扇区是512B。 IO block指文件系统中的每块大小(逻辑块)。一般ext3 是4KB，即4096B。
+
+
+扇区：             是硬盘片上的最小存储单位，一个扇区一般是512字节
+逻辑块(block):  分区进行格式化时所指定的“最小存储单位”。即文件系统存储的最小单位；EXT3 文件系统中的块规格有 1024 Bytes, 2048 Bytes 和4096 Bytes 三种，它并不直接等于扇区的大小，这主要是考虑到使用扇区进行存储的效率 低的缘故。
+
+
+1个block应该是512字节,不是4k
+-----------------------------------
+您这里说的block指的是 Sector扇区吧。
+
+
+stat -c '%b %B %s %n' 1.txt 2.txt
+222480 512 113788806 1.txt
+8 512 3893 2.txt
+------------
+我理解的是：
+%b  ：                                                 显示该文件占用多少个扇区(8个，因为一个文件至少占用一个逻辑块block,即4K，包含8个扇区，故%b显示为
+%B：                                                    一个扇区的大小，即512字节
+直接用stat命令看到的“  IO Block: 4096 ” ： 代表一个逻辑块的大小是4K
+
+
+其实本来这几个概念不是很难，主要是NND他们的名字都一样，都叫“Block Size”。
+1.硬件上的 block size, 应该是"sector size"，linux的扇区大小是512byte
+2.有文件系统的分区的block size, 是"block size"，大小不一，可以用工具查看
+3.没有文件系统的分区的block size，也叫“block size”，大小指的是1024 byte
+4.Kernel buffer cache 的block size, 就是"block size"，大部分PC是1024
+5.磁盘分区的"cylinder size"，用fdisk 可以查看。
+
+
+ref：
+http://bbs.chinaunix.net/thread-3737841-1-1.html 好
+http://blog.csdn.net/hintonic/article/details/8638546 好
+http://blog.chinaunix.net/uid-21977330-id-3273482.html
+http://www.cnblogs.com/jingzhishen/p/3721848.html
 
 关于管道和重定向
 管道：将上个命令的标准输出作为后一个命令的标准输入。
+
+TODO:
+mv( oldname, newname )
+char *oldname, *newname;
+{
+     if ( link(oldname, newname) == -1 || unlink(oldname) == -1 ){
+          fprintf(stderr,"error mv'ing %s to %s\n", oldname, newname);
+          exit(1);
+     }
+}
 
 
 
