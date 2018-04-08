@@ -23,6 +23,8 @@ void printPWD(char * dirNamePath)
 
 	dentry = readdir(dir);  //目录内容中的第一个条目是 .  第二个条目是..
 	current_ino = dentry->d_ino;
+	closedir(dir);
+	dir = NULL;
 
 	sprintf(parentPath , "../%s",dirNamePath);
 	if((dir = opendir(parentPath)) == NULL)
@@ -43,6 +45,8 @@ void printPWD(char * dirNamePath)
 			break;
 		}
 	}
+
+	closedir(dir);
 
 	printf("%ld %ld %s %s\n",current_ino ,parent_ino ,dirName ,dentry->d_name);
 
