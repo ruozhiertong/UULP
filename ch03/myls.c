@@ -106,6 +106,8 @@ int myls(char *path, char*mode[],int num)
         printf("%s\n",fileName);
         
     }
+
+    closedir(dir);
     
     
     
