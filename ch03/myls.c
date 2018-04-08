@@ -8,6 +8,7 @@
 #define LSI 0x0010
 #define LSL 0x0100
 
+// ls [option] [pathname] not ls [pathname] [option]
 //ls -a -l -i
 //ls -lai
 int myls(char *path, char*mode[],int num)
@@ -118,7 +119,7 @@ int main(int argc, char * argv[])
     int modeCount = 0;
     char * pathName;
     
-    if (argc == 1)
+    if (argc == 1) // usage: ls
     {
         pathName = ".";
     }

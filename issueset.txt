@@ -151,6 +151,8 @@ st_size;      //文件字节数(文件大小)，实际文件大小。
 unsigned long st_blksize;   //块大小(文件系统的I/O 缓冲区大小)文件系统在建立时，设置的每个block大小。ext3 一般是4096,4K.
 unsigned long st_blocks;    //块数。系统分配给的block。如果是一个目录，那么本身是不占据block块数的，是由父目录承担块数。 这里的块数是磁盘扇区的块数。 即sector的块数。 一个磁盘扇区 512B。
 
+ls 中 -l 显示的total块数 和 每个条目的块数大小 是针对扇区块数而言，即512B而言的。这里的block是指sector的。 
+
 
 stat 命令
 stat -c '%b %B %s %n' 1.txt
