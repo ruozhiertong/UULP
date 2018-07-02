@@ -21,18 +21,18 @@ void printPWD(char * dirNamePath)
 
 	long current_ino , parent_ino;
 
-	dentry = readdir(dir);  //目录内容中的第一个条目是 .  第二个条目是..
+	dentry = readdir(dir);  //目录内容中的第一个条目是 .  第二个条目是.. 。如果严谨的话，应该while，当dentry->d_name 为.时，获得inode号。 
 	current_ino = dentry->d_ino;
 	closedir(dir);
 	dir = NULL;
 
+	//文件名/目录名 是存在父目录的存储内容中。
 	sprintf(parentPath , "../%s",dirNamePath);
 	if((dir = opendir(parentPath)) == NULL)
 	{
 		printf("opendir error\n");
 		return ;
 	}
-
 	while(dentry = readdir(dir))
 	{
 		if (strcmp(dentry->d_name,".") ==0)

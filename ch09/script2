@@ -1,0 +1,15 @@
+#! /bin/bash
+
+
+BOOK=phonebook.dat
+echo find what name in phonebook
+
+read NAME
+
+if grep $NAME $BOOK > pb.tmp;then
+	echo Entries for $NAME
+	cat pb.tmp
+
+else
+	echo No Entries for &NAME
+fi

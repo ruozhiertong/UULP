@@ -1,0 +1,1 @@
+record.dat: 用script录制了script的用法。
