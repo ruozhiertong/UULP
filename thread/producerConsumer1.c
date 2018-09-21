@@ -44,8 +44,11 @@ typedef struct food
 typedef struct food_buf
 {
 	pthread_mutex_t mutex;
-	pthread_cond_t	cond; //只用一个条件变量来处理缓存满和空的情况。缺点就是 可能线程会经常被虚假唤醒。也有可能应该被唤醒的没有被唤醒，而一直唤醒的是那个不想唤醒的线程，可能导致饥饿(当然这个唤醒调度由系统负责，具体哪个线程应该要被唤醒，我们无能为力)
+	pthread_cond_t cond; //只用一个条件变量来处理缓存满和空的情况。缺点就是 可能线程会经常被虚假唤醒。也有可能应该被唤醒的没有被唤醒，而一直唤醒的是那个不想唤醒的线程，可能导致饥饿(当然这个唤醒调度由系统负责，具体哪个线程应该要被唤醒，我们无能为力)，甚至可能导致死锁。
 						  // 可以用两个条件变量 cond_full cond_empty 分别控制。
+
+	pthread_cond_t  cond_full;
+	pthread_cond_t cond_empty;
 	int food_num;
 	FOOD food_arr[FOODNUMMAX];
 }FOOD_BUF; //缓冲区
@@ -74,7 +77,7 @@ void * produce_food(void * arg)
 		pthread_mutex_lock(&food_buf.mutex);
 
 /*
-		//这样修改,和不带条件变量没什么大进步，只进步一点点。只是避免一个线程中过多的进行空转(不满足条件时阻塞)，但是不能避免下次进来时，还是条件不满足，造成空转。
+		//这样修改,和不带条件变量没什么大进步，只进步一点点。只是避免一个线程中过多的进行空转(不满足条件时阻塞)，但是不能避免下次进来时，还是条件不满足，造成空转。应该用while检测。
 		if(food_buf.food_num < FOODNUMMAX)
 		{
 			...
@@ -98,7 +101,8 @@ void * produce_food(void * arg)
 		......
 		......
 */
-		//while避免虚假唤醒. 
+		//使用条件变量
+		//while避免虚假唤醒. 虚假唤醒：应该在特定情况下被唤醒，而有时候却被唤醒，导致虚假唤醒。因此用while进行判断。
 		while(food_buf.food_num >= FOODNUMMAX)
 		{
 			printf("%ld food is full. produce nothing. To wait\n", pthread_self());
@@ -154,6 +158,103 @@ void *consume_food(void *arg)
 
 	}
 }
+
+
+/*
+关于条件变量 wait 和 signal死锁的情况：（死锁可能发生在互斥量mutex上，也有可能发生在条件变量上）
+pthread_cond_signal  虚假唤醒后，信号丢失 导致所有线程都在wait，死锁
+5个消费者， 3个生产者， 公共资源buf 最大长度为1。
+A.一开始5个消费者共同执行，此时长度为buf0，此时5个消费线程都wait。
+B.生产者生产，此时达到总长度1，并signal。
+C.此时问题出现了，如果另一个生产者在消费者接收到signal信号前运行，那么此时生产者发现长度为1，满了，那么就进入wait状态了。
+当signal过来时，如果被这个生产者接收，而生产者此时发现长度还是1，满了，又进入wait状态。 后续的生产者也进入了wait状态。
+D.此时全部线程在wait，死锁了。
+
+
+所以，虽然条件变量 wait signal 以及用while避免虚假唤醒，但是还是存在死锁的状况。
+
+
+==》方法A:避免该被notify的没被notify，可以用全员notify。 不过这个缺点就是会使一些不该被notify的notify，然后重新判断，wait。虽然有些不好，但是解决了该notify却没被notify的问题。
+
+
+==》方法B:以上情况都是编程错误导致的，避免这样互相wait，应该消费者的wait由生产者signal，生产者的wait由消费者signal。 两者
+不应该用同一个条件变量。即用不同的条件变量。
+
+
+*/
+
+
+//改进版，避免死锁。
+void * produce_food2(void * arg)
+{
+	FOOD product = *(FOOD*)arg;
+	while(1)
+	{
+		//后十次主要由消费者消费
+		while(testTime>=10 && testTime < 20)
+		{
+			sleep(1);
+			testTime++;
+
+		}
+		pthread_mutex_lock(&food_buf.mutex);
+		while(food_buf.food_num >= FOODNUMMAX)
+		{
+			printf("%ld food is full. produce nothing. To wait\n", pthread_self());
+			pthread_cond_wait(&food_buf.cond_full, &food_buf.mutex);
+		}
+
+		//produce
+		printf("%ld producer is producing %d %s , its calorie is %d\n",pthread_self(),food_buf.food_num + 1 , product.food_name, product.food_calorie);
+		food_buf.food_arr[food_buf.food_num].food_calorie = product.food_calorie;
+		strcpy(food_buf.food_arr[food_buf.food_num].food_name, product.food_name);
+		food_buf.food_num++;
+		pthread_cond_signal(&food_buf.cond_empty);
+
+		
+		pthread_mutex_unlock(&food_buf.mutex);
+
+		//produce
+		sleep(1);
+
+
+	}
+}
+
+//改进版，避免死锁。
+void *consume_food2(void *arg)
+{
+	while(1)
+	{
+		//前十次主要由生产者生产
+		while(testTime < 10)
+		{
+			sleep(1);
+			testTime++;
+		}
+		pthread_mutex_lock(&food_buf.mutex);
+
+
+		while(food_buf.food_num <= 0)
+		{
+			printf("food is empty. consume nothing...  wait\n");
+			pthread_cond_wait(&food_buf.cond_empty, &food_buf.mutex);
+		}
+
+
+		//consume
+		printf("%ld consumer is consuming %d %s , its calorie is %d\n",pthread_self(), food_buf.food_num, food_buf.food_arr[food_buf.food_num - 1].food_name, food_buf.food_arr[food_buf.food_num - 1].food_calorie);
+		food_buf.food_num--;
+		pthread_cond_signal(&food_buf.cond_full);
+
+		pthread_mutex_unlock(&food_buf.mutex);
+		//eating
+		sleep(1);
+
+	}
+}
+
+
 
 int main()
 {

@@ -25,6 +25,7 @@ mac中(posix)读写锁是一种写者优先。 有的说linux中是读者优先�
 //写者往里写消息。读者从中读消息。
 typedef struct MSG
 {
+	//读写锁。内部帮我们做了工作(原理应该和readerWriter2.c类似)
 	pthread_rwlock_t rwlock;
 
 	char message[MAXMSG];
