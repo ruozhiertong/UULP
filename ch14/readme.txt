@@ -7,6 +7,7 @@ gcc twebserver.c socklib.c -o twebserv -lpthread
 或者
 shell中发送http： 可以用wget,curl , telnet(telnet 是基于tcp连接的。 可以模拟多种协议的如http等)
 https://zhidao.baidu.com/question/1964590922698291340.html
+https://blog.csdn.net/xiongli880612/article/details/40300861
 GET 请求：curl http://www.baidu.com/
 POST 请求：curl -X POST -d '{"data":"test"}' http://www.baidu.com
 指定IP的GET请求：curl -H "Host:www.baidu.com" http://14.215.177.38
