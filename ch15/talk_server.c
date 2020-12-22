@@ -73,7 +73,8 @@ int main(int argc, char *argv[])
     	
     	fd_set read_fds;
 
-
+    	//这里客户端的并发性会有点问题。 每次都只能处理某一个client。 只有处理完一个client才能accept新的client。
+    	//这个readme.txt 中也有说明了。
     	while(1)
     	{
     		FD_ZERO(&read_fds);
