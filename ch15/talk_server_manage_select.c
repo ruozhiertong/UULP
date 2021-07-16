@@ -113,6 +113,8 @@ int main(int argc, char *argv[])
 	int len;
 
 	FD_ZERO(&client_fds_set);
+	// 这里将server的socket fd 也放在select中一起处理。
+	// 所以在一个线程中可以一起处理client的fd和server的fd (非阻塞。起到并发的效果)。
 	FD_SET(server_sock_id,&client_fds_set);
 	maxfd = maxfd > server_sock_id? maxfd : server_sock_id;
 
